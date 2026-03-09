@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +10,13 @@ import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { SKILL_LABELS, type SkillKey } from "@/lib/db/schema";
-import { ArrowLeft, Save, Pencil } from "lucide-react";
+import { ArrowLeft, Save, Pencil, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useClientData } from "@/lib/client-data-context";
+import { teamSkillProfiles } from "@/lib/placeholder-data";
+import { updateTeamMemberSkillsAction } from "@/lib/actions/client-actions";
+import { toast } from "sonner";
 
 function SkillSlider({
   label,
@@ -80,21 +83,31 @@ export default function TeamMemberDetailPage() {
       .sort((a, b) => b.hours - a.hours);
   }, [member, clients]);
 
-  const defaultSkills: Record<SkillKey, number> = {
-    demanding_clients: 0,
-    complex_bookkeeping: 0,
-    tech_ability: 0,
-    payroll: 0,
-    construction: 0,
-    non_profit: 0,
-    ecommerce: 0,
-    a2x_dext: 0,
-    xero: 0,
-    qbo: 0,
-  };
+  const initialSkills: Record<SkillKey, number> = useMemo(() => {
+    // Use DB skills if available, then placeholder skills, then all zeros
+    const src = member?.skills ?? (member ? teamSkillProfiles[member.id] : undefined);
+    return {
+      demanding_clients: src?.demanding_clients ?? 0,
+      complex_bookkeeping: src?.complex_bookkeeping ?? 0,
+      tech_ability: src?.tech_ability ?? 0,
+      payroll: src?.payroll ?? 0,
+      construction: src?.construction ?? 0,
+      non_profit: src?.non_profit ?? 0,
+      ecommerce: src?.ecommerce ?? 0,
+      a2x_dext: src?.a2x_dext ?? 0,
+      xero: src?.xero ?? 0,
+      qbo: src?.qbo ?? 0,
+    };
+  }, [member]);
 
   const [editing, setEditing] = useState(false);
-  const [skills, setSkills] = useState<Record<SkillKey, number>>(defaultSkills);
+  const [saving, setSaving] = useState(false);
+  const [skills, setSkills] = useState<Record<SkillKey, number>>(initialSkills);
+
+  // Sync skills state when member data loads/changes
+  useEffect(() => {
+    if (!editing) setSkills(initialSkills);
+  }, [initialSkills, editing]);
 
   if (!member) {
     return (
@@ -140,16 +153,32 @@ export default function TeamMemberDetailPage() {
         <div className="flex gap-2">
           {editing ? (
             <>
-              <Button variant="outline" onClick={() => setEditing(false)}>
+              <Button variant="outline" onClick={() => {
+                setSkills(initialSkills);
+                setEditing(false);
+              }}>
                 Cancel
               </Button>
               <Button
-                onClick={() => {
-                  // Save logic will go here
-                  setEditing(false);
+                disabled={saving}
+                onClick={async () => {
+                  if (!member) return;
+                  setSaving(true);
+                  const result = await updateTeamMemberSkillsAction(member.id, skills);
+                  setSaving(false);
+                  if (result.success) {
+                    toast.success("Skills updated");
+                    setEditing(false);
+                  } else {
+                    toast.error(result.error ?? "Failed to save skills");
+                  }
                 }}
               >
-                <Save className="mr-2 h-4 w-4" />
+                {saving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
                 Save Changes
               </Button>
             </>

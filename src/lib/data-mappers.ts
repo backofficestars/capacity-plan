@@ -12,7 +12,9 @@ import type {
   Client as UiClient,
   TeamMember as UiTeamMember,
   ClientAssignment,
+  SkillRatings,
 } from "@/lib/placeholder-data";
+import type { TeamMemberSkill } from "@/lib/db/schema";
 
 // ─── Status mapping (DB enum → UI single char) ─────────────────────────────
 
@@ -92,7 +94,8 @@ export function mapDbClientToUi(
 export function mapDbTeamMemberToUi(
   t: DbTeamMember,
   memberAssignments: DbAssignment[],
-  memberInternalHours: { weeklyHours: string }[]
+  memberInternalHours: { weeklyHours: string }[],
+  memberSkills?: TeamMemberSkill[]
 ): UiTeamMember {
   const monthlyOngoingHrs = memberAssignments.reduce(
     (sum, a) => sum + Number(a.allocatedHrs ?? 0),
@@ -107,6 +110,21 @@ export function mapDbTeamMemberToUi(
 
   const weeklyCapacity = Number(t.weeklyCapacityHrs);
 
+  // Build skills map from DB rows
+  let skills: SkillRatings | undefined;
+  if (memberSkills && memberSkills.length > 0) {
+    skills = {
+      demanding_clients: 0, complex_bookkeeping: 0, tech_ability: 0,
+      payroll: 0, construction: 0, non_profit: 0,
+      ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 0,
+    };
+    for (const s of memberSkills) {
+      if (s.skillKey in skills) {
+        skills[s.skillKey as keyof SkillRatings] = s.skillValue;
+      }
+    }
+  }
+
   return {
     id: t.fcId ?? t.id,
     name: t.fullName,
@@ -116,6 +134,7 @@ export function mapDbTeamMemberToUi(
     monthlyOngoingHrs,
     internalHrs,
     assignable: t.assignable ?? false,
+    skills,
   };
 }
 

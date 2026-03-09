@@ -55,10 +55,14 @@ export async function loadTeamMembers(): Promise<TeamMember[]> {
     ),
   });
 
+  // Load skills
+  const dbSkills = await db.query.teamMemberSkills.findMany();
+
   return dbTeam.map((t) => {
     const memberAssignments = dbAssignments.filter((a) => a.teamMemberId === t.id);
     const memberInternal = dbInternalHours.filter((ih) => ih.teamMemberId === t.id);
-    return mapDbTeamMemberToUi(t, memberAssignments, memberInternal);
+    const memberSkills = dbSkills.filter((s) => s.teamMemberId === t.id);
+    return mapDbTeamMemberToUi(t, memberAssignments, memberInternal, memberSkills);
   });
 }
 

@@ -42,6 +42,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session;
     },
     authorized({ auth: session, request }) {
+      // Dev-only: skip auth when BYPASS_AUTH is set
+      if (process.env.BYPASS_AUTH === "true") return true;
       const isLoggedIn = !!session?.user;
       const isOnLogin = request.nextUrl.pathname.startsWith("/login");
       if (isOnLogin) return true;

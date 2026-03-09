@@ -408,6 +408,37 @@ export async function undoLastEditAction(): Promise<{
   }
 }
 
+// ─── Update team member skills ──────────────────────────────────────────────
+
+export async function updateTeamMemberSkillsAction(
+  memberFcId: string,
+  skills: Record<string, number>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const memberUuid = await resolveMemberUuid(memberFcId);
+    if (!memberUuid) return { success: false, error: "Team member not found" };
+
+    for (const [key, value] of Object.entries(skills)) {
+      await db
+        .insert(schema.teamMemberSkills)
+        .values({
+          teamMemberId: memberUuid,
+          skillKey: key,
+          skillValue: value,
+        })
+        .onConflictDoUpdate({
+          target: [schema.teamMemberSkills.teamMemberId, schema.teamMemberSkills.skillKey],
+          set: { skillValue: value },
+        });
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("updateTeamMemberSkillsAction error:", err);
+    return { success: false, error: String(err) };
+  }
+}
+
 // ─── Check if undo is available ─────────────────────────────────────────────
 
 export async function canUndoAction(): Promise<boolean> {

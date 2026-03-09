@@ -16,6 +16,7 @@ import {
   clients as clientData,
   internalHoursBreakdown,
   defaultPtoOverrides,
+  teamSkillProfiles,
 } from "../placeholder-data";
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -129,6 +130,33 @@ async function seed() {
   }
 
   console.log(`  ✓ ${teamIdMap.size} team members upserted\n`);
+
+  // ─── 1b. Team Member Skills ───────────────────────────────────────────────
+
+  console.log("Inserting team member skills...");
+  let skillCount = 0;
+
+  for (const [fcId, skills] of Object.entries(teamSkillProfiles)) {
+    const teamUuid = teamIdMap.get(fcId);
+    if (!teamUuid) continue;
+
+    for (const [key, value] of Object.entries(skills)) {
+      await db
+        .insert(schema.teamMemberSkills)
+        .values({
+          teamMemberId: teamUuid,
+          skillKey: key,
+          skillValue: value as number,
+        })
+        .onConflictDoUpdate({
+          target: [schema.teamMemberSkills.teamMemberId, schema.teamMemberSkills.skillKey],
+          set: { skillValue: value as number },
+        });
+      skillCount++;
+    }
+  }
+
+  console.log(`  ✓ ${skillCount} skill ratings upserted\n`);
 
   // ─── 2. Internal Hours ──────────────────────────────────────────────────────
 

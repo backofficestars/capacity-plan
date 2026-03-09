@@ -1,6 +1,19 @@
 // Real data from BOS Client Assignment & Priorities spreadsheet
 // This will be replaced with DB queries once the database is connected
 
+export type SkillRatings = {
+  demanding_clients: number;
+  complex_bookkeeping: number;
+  tech_ability: number;
+  payroll: number;
+  construction: number;
+  non_profit: number;
+  ecommerce: number;
+  a2x_dext: number;
+  xero: number;
+  qbo: number;
+};
+
 export type TeamMember = {
   id: string;
   name: string;
@@ -10,6 +23,18 @@ export type TeamMember = {
   monthlyOngoingHrs: number;
   internalHrs: number;
   assignable: boolean;
+  skills?: SkillRatings;
+};
+
+/** Skill data from BOS Bookkeeper skill profiles.xlsx */
+export const teamSkillProfiles: Record<string, SkillRatings> = {
+  ellen:    { demanding_clients: 4, complex_bookkeeping: 2, tech_ability: 3, payroll: 2, construction: 1, non_profit: 2, ecommerce: 0, a2x_dext: 0, xero: 3, qbo: 3 },
+  kayla:    { demanding_clients: 5, complex_bookkeeping: 5, tech_ability: 5, payroll: 4, construction: 5, non_profit: 5, ecommerce: 4, a2x_dext: 0, xero: 4, qbo: 5 },
+  dawn:     { demanding_clients: 4, complex_bookkeeping: 4, tech_ability: 5, payroll: 3, construction: 4, non_profit: 0, ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 5 },
+  shannon:  { demanding_clients: 5, complex_bookkeeping: 5, tech_ability: 5, payroll: 0, construction: 1, non_profit: 3, ecommerce: 1, a2x_dext: 5, xero: 5, qbo: 5 },
+  terri:    { demanding_clients: 3, complex_bookkeeping: 3, tech_ability: 4, payroll: 5, construction: 0, non_profit: 0, ecommerce: 4, a2x_dext: 0, xero: 1, qbo: 4 },
+  lynne:    { demanding_clients: 2, complex_bookkeeping: 4, tech_ability: 3, payroll: 3, construction: 0, non_profit: 0, ecommerce: 4, a2x_dext: 1, xero: 0, qbo: 5 },
+  gurpreet: { demanding_clients: 3, complex_bookkeeping: 4, tech_ability: 3, payroll: 3, construction: 0, non_profit: 0, ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 4 },
 };
 
 export type Client = {
@@ -148,13 +173,13 @@ export const defaultPtoOverrides: PtoOverride[] = [
 ];
 
 export const teamMembers: TeamMember[] = [
-  { id: "kayla", name: "Kayla Puhov", role: "Bookkeeper", weeklyCapacity: 50, monthlyCapacity: 200, monthlyOngoingHrs: 141.35, internalHrs: 26.5, assignable: true },
-  { id: "ellen", name: "Ellen Kuipers", role: "Bookkeeper", weeklyCapacity: 35, monthlyCapacity: 140, monthlyOngoingHrs: 121.86, internalHrs: 12, assignable: true },
-  { id: "shannon", name: "Shannon Shier", role: "Bookkeeper", weeklyCapacity: 50, monthlyCapacity: 200, monthlyOngoingHrs: 91.95, internalHrs: 7, assignable: true },
-  { id: "dawn", name: "Dawn Thompson", role: "Bookkeeper", weeklyCapacity: 30, monthlyCapacity: 120, monthlyOngoingHrs: 80.78, internalHrs: 11, assignable: true },
-  { id: "terri", name: "Terri McNamara", role: "Bookkeeper", weeklyCapacity: 20, monthlyCapacity: 80, monthlyOngoingHrs: 63.17, internalHrs: 11, assignable: true },
-  { id: "lynne", name: "Lynne Brocklehurst", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 19.65, internalHrs: 5.5, assignable: false },
-  { id: "gurpreet", name: "Gurpreet Kaur", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 15.08, internalHrs: 5.75, assignable: false },
+  { id: "kayla", name: "Kayla Puhov", role: "Bookkeeper", weeklyCapacity: 50, monthlyCapacity: 200, monthlyOngoingHrs: 141.35, internalHrs: 26.5, assignable: true, skills: teamSkillProfiles.kayla },
+  { id: "ellen", name: "Ellen Kuipers", role: "Bookkeeper", weeklyCapacity: 35, monthlyCapacity: 140, monthlyOngoingHrs: 121.86, internalHrs: 12, assignable: true, skills: teamSkillProfiles.ellen },
+  { id: "shannon", name: "Shannon Shier", role: "Bookkeeper", weeklyCapacity: 50, monthlyCapacity: 200, monthlyOngoingHrs: 91.95, internalHrs: 7, assignable: true, skills: teamSkillProfiles.shannon },
+  { id: "dawn", name: "Dawn Thompson", role: "Bookkeeper", weeklyCapacity: 30, monthlyCapacity: 120, monthlyOngoingHrs: 80.78, internalHrs: 11, assignable: true, skills: teamSkillProfiles.dawn },
+  { id: "terri", name: "Terri McNamara", role: "Bookkeeper", weeklyCapacity: 20, monthlyCapacity: 80, monthlyOngoingHrs: 63.17, internalHrs: 11, assignable: true, skills: teamSkillProfiles.terri },
+  { id: "lynne", name: "Lynne Brocklehurst", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 19.65, internalHrs: 5.5, assignable: false, skills: teamSkillProfiles.lynne },
+  { id: "gurpreet", name: "Gurpreet Kaur", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 15.08, internalHrs: 5.75, assignable: false, skills: teamSkillProfiles.gurpreet },
   { id: "aldora", name: "Aldora", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 17, internalHrs: 14, assignable: false },
   { id: "kim", name: "Kim", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 11.15, internalHrs: 2.5, assignable: false },
   { id: "farrell", name: "Farrell", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 5.43, internalHrs: 5, assignable: false },

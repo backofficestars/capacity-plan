@@ -4,6 +4,10 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { loadClients, loadTeamMembers } from "@/lib/actions/data-loaders";
+import {
+  clients as placeholderClients,
+  teamMembers as placeholderTeamMembers,
+} from "@/lib/placeholder-data";
 
 // Force dynamic rendering so the layout always fetches fresh data from the DB
 // (without this, Next.js may cache the empty fallback from build time)
@@ -34,7 +38,9 @@ export default async function RootLayout({
       loadTeamMembers(),
     ]);
   } catch (err) {
-    console.error("[layout] Failed to load data from DB:", err);
+    console.error("[layout] Failed to load data from DB, using placeholder data:", err);
+    initialClients = placeholderClients;
+    initialTeamMembers = placeholderTeamMembers;
   }
 
   return (
