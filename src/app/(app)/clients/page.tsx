@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { EditableField } from "@/components/editable-field";
 import { useClientData } from "@/lib/client-data-context";
@@ -161,29 +161,34 @@ export default function ClientsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={tierFilter} onValueChange={(v: string | null) => { if (v) setTierFilter(v); }}>
-          <SelectTrigger className="w-32">
-            <Filter className="mr-2 h-3.5 w-3.5" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tiers</SelectItem>
-            <SelectItem value="A">A Tier</SelectItem>
-            <SelectItem value="B">B Tier</SelectItem>
-            <SelectItem value="C">C Tier</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={(v: string | null) => { if (v) setStatusFilter(v); }}>
-          <SelectTrigger className="w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="A">Active</SelectItem>
-            <SelectItem value="N">New</SelectItem>
-            <SelectItem value="P">Onboarding</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">Tier:</span>
+          <Select value={tierFilter} onValueChange={(v: string | null) => { if (v) setTierFilter(v); }}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tiers</SelectItem>
+              <SelectItem value="A">A Tier</SelectItem>
+              <SelectItem value="B">B Tier</SelectItem>
+              <SelectItem value="C">C Tier</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">Status:</span>
+          <Select value={statusFilter} onValueChange={(v: string | null) => { if (v) setStatusFilter(v); }}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="A">Active</SelectItem>
+              <SelectItem value="N">New</SelectItem>
+              <SelectItem value="P">Onboarding</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Client Table */}

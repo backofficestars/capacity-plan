@@ -17,7 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Search, Filter, Download, Trash2 } from "lucide-react";
+import { Search, Download, Trash2 } from "lucide-react";
 import { useClientData } from "@/lib/client-data-context";
 import {
   defaultAssignmentRoles,
@@ -151,30 +151,34 @@ export default function AssignmentsPage() {
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search clients..." className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Select value={statusFilter} onValueChange={(v: string | null) => { if (v) setStatusFilter(v); }}>
-          <SelectTrigger className="w-40">
-            <Filter className="mr-2 h-3.5 w-3.5" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="A">Active</SelectItem>
-            <SelectItem value="N">New</SelectItem>
-            <SelectItem value="P">Onboarding</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={tierFilter} onValueChange={(v: string | null) => { if (v) setTierFilter(v); }}>
-          <SelectTrigger className="w-36">
-            <Filter className="mr-2 h-3.5 w-3.5" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tiers</SelectItem>
-            <SelectItem value="A">A Tier</SelectItem>
-            <SelectItem value="B">B Tier</SelectItem>
-            <SelectItem value="C">C Tier</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">Status:</span>
+          <Select value={statusFilter} onValueChange={(v: string | null) => { if (v) setStatusFilter(v); }}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="A">Active</SelectItem>
+              <SelectItem value="N">New</SelectItem>
+              <SelectItem value="P">Onboarding</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground">Tier:</span>
+          <Select value={tierFilter} onValueChange={(v: string | null) => { if (v) setTierFilter(v); }}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tiers</SelectItem>
+              <SelectItem value="A">A Tier</SelectItem>
+              <SelectItem value="B">B Tier</SelectItem>
+              <SelectItem value="C">C Tier</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Card>
