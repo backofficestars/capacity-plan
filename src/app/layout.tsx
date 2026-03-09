@@ -5,6 +5,10 @@ import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { loadClients, loadTeamMembers } from "@/lib/actions/data-loaders";
 
+// Force dynamic rendering so the layout always fetches fresh data from the DB
+// (without this, Next.js may cache the empty fallback from build time)
+export const dynamic = "force-dynamic";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -29,8 +33,8 @@ export default async function RootLayout({
       loadClients(),
       loadTeamMembers(),
     ]);
-  } catch {
-    // DB not available (e.g. login page, build time) — fall back to empty
+  } catch (err) {
+    console.error("[layout] Failed to load data from DB:", err);
   }
 
   return (
