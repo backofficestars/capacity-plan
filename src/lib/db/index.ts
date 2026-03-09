@@ -1,0 +1,34 @@
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "./schema";
+
+const connectionString = process.env.DATABASE_URL;
+
+// Lazy connection - only connects when a DB query is actually executed.
+// This prevents the app from crashing at import time when DATABASE_URL is not set
+// (e.g. during development without a database, or during Next.js static analysis).
+let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
+
+function getDb() {
+  if (!_db) {
+    if (!connectionString) {
+      throw new Error("DATABASE_URL environment variable is not set");
+    }
+    const client = postgres(connectionString, {
+      max: 10,
+      idle_timeout: 20,
+      connect_timeout: 10,
+    });
+    _db = drizzle(client, { schema });
+  }
+  return _db;
+}
+
+// Proxy that lazily initializes the DB connection on first property access
+export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
+  get(_target, prop) {
+    return (getDb() as Record<string | symbol, unknown>)[prop];
+  },
+});
+
+export type Database = ReturnType<typeof getDb>;
