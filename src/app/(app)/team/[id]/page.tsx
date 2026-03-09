@@ -1,114 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { SKILL_LABELS, type SkillKey } from "@/lib/db/schema";
 import { ArrowLeft, Save, Pencil } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-
-// Placeholder data - will be fetched from DB
-const teamMembersData: Record<
-  string,
-  {
-    name: string;
-    role: string;
-    email: string;
-    assignable: boolean;
-    employmentType: string;
-    weeklyCapacity: number;
-    daytimeAvailable: boolean;
-    yearsExperience: number;
-    industryExperience: string;
-    hireDate: string;
-    probationUntil: string | null;
-    notes: string;
-    skills: Record<SkillKey, number>;
-    assignedClients: { name: string; role: string; hours: number }[];
-  }
-> = {
-  "1": {
-    name: "Ellen Kuipers",
-    role: "bookkeeper",
-    email: "ellen@backoffice-stars.com",
-    assignable: true,
-    employmentType: "contractor",
-    weeklyCapacity: 40,
-    daytimeAvailable: true,
-    yearsExperience: 13,
-    industryExperience: "General, some construction exposure",
-    hireDate: "2013-04-15",
-    probationUntil: null,
-    notes: "Very reliable. Strong with QBO.",
-    skills: {
-      demanding_clients: 4,
-      complex_bookkeeping: 2,
-      tech_ability: 3,
-      payroll: 2,
-      construction: 1,
-      non_profit: 2,
-      ecommerce: 0,
-      a2x_dext: 0,
-      xero: 3,
-      qbo: 3,
-    },
-    assignedClients: [
-      { name: "Aqua-Pure Ventures", role: "lead", hours: 4 },
-      { name: "Briar Rose Flowers", role: "lead", hours: 3 },
-      { name: "Dr. Willow Dental", role: "lead", hours: 2.5 },
-      { name: "Green Leaf Co-op", role: "lead", hours: 2 },
-    ],
-  },
-  "2": {
-    name: "Kayla Puhov",
-    role: "bookkeeper",
-    email: "kayla@backoffice-stars.com",
-    assignable: true,
-    employmentType: "contractor",
-    weeklyCapacity: 40,
-    daytimeAvailable: true,
-    yearsExperience: 15,
-    industryExperience: "Construction, Non-Profit, E-Commerce, General",
-    hireDate: "2011-09-01",
-    probationUntil: null,
-    notes: "Most experienced. Can handle any client type.",
-    skills: {
-      demanding_clients: 5,
-      complex_bookkeeping: 5,
-      tech_ability: 5,
-      payroll: 4,
-      construction: 5,
-      non_profit: 5,
-      ecommerce: 4,
-      a2x_dext: 0,
-      xero: 4,
-      qbo: 5,
-    },
-    assignedClients: [
-      { name: "BPE Eng.", role: "lead", hours: 5 },
-      { name: "Eagle Construction", role: "lead", hours: 6 },
-      { name: "Harbor Marine", role: "lead", hours: 4 },
-      { name: "Kingsway Plumbing", role: "lead", hours: 3.5 },
-      { name: "ClearView Consulting", role: "supporting", hours: 2 },
-    ],
-  },
-};
+import { useClientData } from "@/lib/client-data-context";
 
 function SkillSlider({
   label,
@@ -154,9 +59,42 @@ function SkillSlider({
 export default function TeamMemberDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const member = teamMembersData[id];
+  const { teamMembers, clients } = useClientData();
+
+  const member = teamMembers.find((m) => m.id === id);
+
+  // Derive assigned clients from the client data
+  const assignedClients = useMemo(() => {
+    if (!member) return [];
+    return clients
+      .filter((c) => c.status === "A")
+      .flatMap((c) =>
+        c.assignments
+          .filter((a) => a.memberId === member.id)
+          .map((a) => ({
+            clientName: c.name,
+            role: a.roleId,
+            hours: a.hours,
+          }))
+      )
+      .sort((a, b) => b.hours - a.hours);
+  }, [member, clients]);
+
+  const defaultSkills: Record<SkillKey, number> = {
+    demanding_clients: 0,
+    complex_bookkeeping: 0,
+    tech_ability: 0,
+    payroll: 0,
+    construction: 0,
+    non_profit: 0,
+    ecommerce: 0,
+    a2x_dext: 0,
+    xero: 0,
+    qbo: 0,
+  };
+
   const [editing, setEditing] = useState(false);
-  const [skills, setSkills] = useState(member?.skills ?? ({} as Record<SkillKey, number>));
+  const [skills, setSkills] = useState<Record<SkillKey, number>>(defaultSkills);
 
   if (!member) {
     return (
@@ -170,15 +108,18 @@ export default function TeamMemberDetailPage() {
         </Link>
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
-            Team member not found. (This is a demo with limited data. Try IDs 1 or 2.)
+            Team member not found.
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const totalAssigned = member.assignedClients.reduce((s, c) => s + c.hours, 0);
-  const utilization = (totalAssigned / member.weeklyCapacity) * 100;
+  const totalAssignedMonthly = assignedClients.reduce((s, c) => s + c.hours, 0);
+  const utilization =
+    member.monthlyCapacity > 0
+      ? (totalAssignedMonthly / member.monthlyCapacity) * 100
+      : 0;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -193,9 +134,7 @@ export default function TeamMemberDetailPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{member.name}</h1>
-            <p className="text-muted-foreground capitalize">
-              {member.role} &middot; {member.yearsExperience} years experience
-            </p>
+            <p className="text-muted-foreground capitalize">{member.role}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -232,22 +171,12 @@ export default function TeamMemberDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Email</span>
-                <span className="font-medium">{member.email}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Type</span>
-                <span className="font-medium capitalize">{member.employmentType}</span>
+                <span className="text-muted-foreground">Role</span>
+                <span className="font-medium capitalize">{member.role}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Capacity</span>
                 <span className="font-medium">{member.weeklyCapacity}h/wk</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Daytime</span>
-                <span className="font-medium">
-                  {member.daytimeAvailable ? "Yes" : "No"}
-                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Assignable</span>
@@ -262,29 +191,19 @@ export default function TeamMemberDetailPage() {
                   {member.assignable ? "Yes" : "No"}
                 </Badge>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Hired</span>
-                <span className="font-medium">{member.hireDate}</span>
-              </div>
-              {member.probationUntil && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Probation Until</span>
-                  <Badge variant="secondary" className="bg-amber-50 text-amber-700">
-                    {member.probationUntil}
-                  </Badge>
-                </div>
-              )}
               <Separator />
-              <div>
-                <span className="text-muted-foreground text-xs">Industry Experience</span>
-                <p className="mt-1 text-sm">{member.industryExperience}</p>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Monthly Client Hrs</span>
+                <span className="font-medium tabular-nums">
+                  {member.monthlyOngoingHrs.toFixed(1)}h
+                </span>
               </div>
-              {member.notes && (
-                <div>
-                  <span className="text-muted-foreground text-xs">Notes</span>
-                  <p className="mt-1 text-sm">{member.notes}</p>
-                </div>
-              )}
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Internal Hrs</span>
+                <span className="font-medium tabular-nums">
+                  {member.internalHrs.toFixed(1)}h
+                </span>
+              </div>
             </CardContent>
           </Card>
 
@@ -302,7 +221,7 @@ export default function TeamMemberDetailPage() {
               </div>
               <Progress value={Math.min(100, utilization)} className="h-2" />
               <div className="text-xs text-muted-foreground">
-                {totalAssigned}h committed / {member.weeklyCapacity}h capacity
+                {totalAssignedMonthly.toFixed(1)}h assigned / {member.monthlyCapacity}h capacity (monthly)
               </div>
             </CardContent>
           </Card>
@@ -333,13 +252,15 @@ export default function TeamMemberDetailPage() {
           {/* Current Assignments */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Current Assignments</CardTitle>
+              <CardTitle className="text-base">
+                Current Assignments ({assignedClients.length} clients)
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {member.assignedClients.map((client) => (
+                {assignedClients.map((client) => (
                   <div
-                    key={client.name}
+                    key={`${client.clientName}-${client.role}`}
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <div className="flex items-center gap-3">
@@ -348,19 +269,23 @@ export default function TeamMemberDetailPage() {
                         className={
                           client.role === "lead"
                             ? "bg-blue-50 text-blue-700"
-                            : "bg-zinc-100 text-zinc-600"
+                            : client.role === "oversight"
+                              ? "bg-purple-50 text-purple-700"
+                              : client.role === "payroll"
+                                ? "bg-amber-50 text-amber-700"
+                                : "bg-zinc-100 text-zinc-600"
                         }
                       >
                         {client.role}
                       </Badge>
-                      <span className="font-medium text-sm">{client.name}</span>
+                      <span className="font-medium text-sm">{client.clientName}</span>
                     </div>
                     <span className="text-sm text-muted-foreground tabular-nums">
-                      {client.hours}h/wk
+                      {client.hours}h/mo
                     </span>
                   </div>
                 ))}
-                {member.assignedClients.length === 0 && (
+                {assignedClients.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
                     No current assignments
                   </p>
