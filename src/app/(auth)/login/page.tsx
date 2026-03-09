@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +16,14 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30">
       <Card className="w-[400px]">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg">
-            BOS
-          </div>
+          <Image
+            src="/backofficestars.svg"
+            alt="Back Office Stars"
+            width={180}
+            height={62}
+            className="mx-auto mb-4"
+            priority
+          />
           <CardTitle className="text-xl">Capacity Planner</CardTitle>
           <CardDescription>
             Sign in with your Google account to access the BOS capacity planning
