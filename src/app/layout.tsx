@@ -29,10 +29,19 @@ export default async function RootLayout({
   let initialTeamMembers: Awaited<ReturnType<typeof loadTeamMembers>> = [];
 
   try {
+    console.log("[layout] Loading data from DB...");
+    console.log("[layout] DATABASE_URL set:", !!process.env.DATABASE_URL);
     [initialClients, initialTeamMembers] = await Promise.all([
       loadClients(),
       loadTeamMembers(),
     ]);
+    console.log(
+      "[layout] Loaded:",
+      initialClients.length,
+      "clients,",
+      initialTeamMembers.length,
+      "team members"
+    );
   } catch (err) {
     console.error("[layout] Failed to load data from DB:", err);
   }
