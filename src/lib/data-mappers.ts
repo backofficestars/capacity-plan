@@ -62,7 +62,7 @@ export function mapDbClientToUi(
   const oversight = assignments.find((a) => a.roleId === "oversight");
   const payroll = assignments.find((a) => a.roleId === "payroll");
 
-  const totalMonthlyHrs = assignments.reduce((sum, a) => sum + a.hours, 0);
+  const totalMonthlyHrs = Math.round(assignments.reduce((sum, a) => sum + a.hours, 0) * 10) / 10;
 
   return {
     id: c.fcId ?? c.id,
@@ -97,16 +97,14 @@ export function mapDbTeamMemberToUi(
   memberInternalHours: { weeklyHours: string }[],
   memberSkills?: TeamMemberSkill[]
 ): UiTeamMember {
-  const monthlyOngoingHrs = memberAssignments.reduce(
-    (sum, a) => sum + Number(a.allocatedHrs ?? 0),
-    0
-  );
+  const monthlyOngoingHrs = Math.round(
+    memberAssignments.reduce((sum, a) => sum + Number(a.allocatedHrs ?? 0), 0) * 10
+  ) / 10;
 
   // Sum internal hours (stored as weekly, convert to monthly)
-  const internalHrs = memberInternalHours.reduce(
-    (sum, ih) => sum + Number(ih.weeklyHours) * 4,
-    0
-  );
+  const internalHrs = Math.round(
+    memberInternalHours.reduce((sum, ih) => sum + Number(ih.weeklyHours) * 4, 0) * 10
+  ) / 10;
 
   const weeklyCapacity = Number(t.weeklyCapacityHrs);
 

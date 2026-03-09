@@ -45,7 +45,7 @@ const tierOptions = [
 
 const statusOptions = [
   { value: "A", label: "Active" },
-  { value: "N", label: "Not Active" },
+  { value: "N", label: "New" },
   { value: "P", label: "Onboarding" },
 ];
 

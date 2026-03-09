@@ -305,7 +305,7 @@ export function getTeamMemberClientCount(memberId: string): number {
 // Status labels
 export const statusLabels: Record<string, string> = {
   A: "Active",
-  N: "Not Active",
+  N: "New",
   P: "Onboarding",
 };
 

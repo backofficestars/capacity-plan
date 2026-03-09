@@ -61,7 +61,7 @@ const tierOptions = [
 
 const statusOptions = [
   { value: "A", label: "Active" },
-  { value: "N", label: "Not Active" },
+  { value: "N", label: "New" },
   { value: "P", label: "Onboarding" },
 ];
 
@@ -180,7 +180,7 @@ export default function ClientsPage() {
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="A">Active</SelectItem>
-            <SelectItem value="N">Not Active</SelectItem>
+            <SelectItem value="N">New</SelectItem>
             <SelectItem value="P">Onboarding</SelectItem>
           </SelectContent>
         </Select>
@@ -257,7 +257,7 @@ export default function ClientsPage() {
                     />
                   </TableCell>
                   <TableCell className="text-right tabular-nums text-sm">
-                    {client.totalMonthlyHrs}
+                    {client.totalMonthlyHrs.toFixed(1)}
                   </TableCell>
                   <TableCell>
                     <EditableField

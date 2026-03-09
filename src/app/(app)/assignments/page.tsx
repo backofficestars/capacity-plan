@@ -65,18 +65,20 @@ type CellEdit = { clientId: string; memberId: string };
 export default function AssignmentsPage() {
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [editCell, setEditCell] = useState<CellEdit | null>(null);
   const [editHours, setEditHours] = useState("");
   const [editRole, setEditRole] = useState("lead");
   const { clients, teamMembers, updateClientField } = useClientData();
 
-  const activeClients = clients.filter((c) => c.status === "A" || c.status === "N");
+  const activeClients = clients.filter((c) => c.status === "A" || c.status === "N" || c.status === "P");
   const matrixMembers = getMatrixMembers(clients, teamMembers);
 
   const filteredClients = activeClients.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase());
     const matchesTier = tierFilter === "all" || c.priority === tierFilter;
-    return matchesSearch && matchesTier;
+    const matchesStatus = statusFilter === "all" || c.status === statusFilter;
+    return matchesSearch && matchesTier && matchesStatus;
   });
 
   function openCellEdit(clientId: string, memberId: string) {
@@ -149,6 +151,18 @@ export default function AssignmentsPage() {
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search clients..." className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
+        <Select value={statusFilter} onValueChange={(v: string | null) => { if (v) setStatusFilter(v); }}>
+          <SelectTrigger className="w-40">
+            <Filter className="mr-2 h-3.5 w-3.5" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="A">Active</SelectItem>
+            <SelectItem value="N">New</SelectItem>
+            <SelectItem value="P">Onboarding</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={tierFilter} onValueChange={(v: string | null) => { if (v) setTierFilter(v); }}>
           <SelectTrigger className="w-36">
             <Filter className="mr-2 h-3.5 w-3.5" />
@@ -263,7 +277,7 @@ export default function AssignmentsPage() {
                         </td>
                       );
                     })}
-                    <td className="px-2 py-1.5 text-center font-medium tabular-nums text-xs">{client.totalMonthlyHrs}h</td>
+                    <td className="px-2 py-1.5 text-center font-medium tabular-nums text-xs">{client.totalMonthlyHrs.toFixed(1)}h</td>
                   </tr>
                 ))}
               </tbody>
