@@ -4,14 +4,25 @@ import { SessionProvider } from "next-auth/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ClientDataProvider } from "@/lib/client-data-context";
 import type { ReactNode } from "react";
+import type { Client, TeamMember } from "@/lib/placeholder-data";
 
-export function Providers({ children }: { children: ReactNode }) {
+type ProvidersProps = {
+  children: ReactNode;
+  initialClients: Client[];
+  initialTeamMembers: TeamMember[];
+};
+
+export function Providers({
+  children,
+  initialClients,
+  initialTeamMembers,
+}: ProvidersProps) {
   return (
-    <SessionProvider
-      // Don't block rendering when auth session fetch fails (e.g. no DB configured)
-      refetchOnWindowFocus={false}
-    >
-      <ClientDataProvider>
+    <SessionProvider refetchOnWindowFocus={false}>
+      <ClientDataProvider
+        initialClients={initialClients}
+        initialTeamMembers={initialTeamMembers}
+      >
         <TooltipProvider delay={0}>{children}</TooltipProvider>
       </ClientDataProvider>
     </SessionProvider>

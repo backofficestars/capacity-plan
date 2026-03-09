@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 import { EditableField } from "@/components/editable-field";
 import { useClientData } from "@/lib/client-data-context";
 import {
-  teamMembers,
   statusLabels,
   priorityLabels,
   defaultAssignmentRoles,
@@ -70,14 +69,14 @@ const dextHubdocOptions = [
   { value: "", label: "—" },
 ];
 
-const memberOptions = teamMembers.map((m) => ({ value: m.id, label: m.name }));
-
 const roleOptions = defaultAssignmentRoles.map((r) => ({ value: r.id, label: r.name }));
 
 export default function ClientDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const { clients, updateClientField, addAssignment, updateAssignment, removeAssignment, getMemberName } = useClientData();
+  const { clients, teamMembers, updateClientField, addAssignment, updateAssignment, removeAssignment, getMemberName } = useClientData();
+
+  const memberOptions = teamMembers.map((m) => ({ value: m.id, label: m.name }));
   const client = clients.find((c) => c.id === id);
 
   const [addingAssignment, setAddingAssignment] = useState(false);

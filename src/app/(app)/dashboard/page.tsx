@@ -14,12 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import {
-  assignableMembers,
-  activeClients,
-  getTeamMemberClientHours,
-  getTeamMemberClientCount,
-} from "@/lib/placeholder-data";
+import { useClientData } from "@/lib/client-data-context";
 
 function getStatus(utilPct: number): string {
   if (utilPct >= 100) return "overloaded";
@@ -59,6 +54,32 @@ function getBarColor(status: string) {
 }
 
 export default function DashboardPage() {
+  const { clients, teamMembers } = useClientData();
+
+  // Derive from context data instead of placeholder-data imports
+  const assignableMembers = teamMembers.filter((m) => m.assignable);
+  const activeClients = clients.filter((c) => c.status === "A" || c.status === "N");
+
+  function getTeamMemberClientHours(memberId: string): number {
+    return clients
+      .filter((c) => c.status !== "P")
+      .reduce((sum, c) => {
+        let hrs = 0;
+        if (c.leadBookkeeper === memberId) hrs += c.primaryHrs;
+        if (c.secondBookkeeper === memberId) hrs += c.secondHrs;
+        if (c.oversight === memberId) hrs += c.oversightHrs;
+        if (c.payrollBookkeeper === memberId) hrs += c.payrollHrs;
+        return sum + hrs;
+      }, 0);
+  }
+
+  function getTeamMemberClientCount(memberId: string): number {
+    return clients
+      .filter((c) => c.status !== "P")
+      .filter((c) => c.leadBookkeeper === memberId || c.secondBookkeeper === memberId)
+      .length;
+  }
+
   const teamData = assignableMembers.map((m) => {
     const clientHrs = getTeamMemberClientHours(m.id);
     const totalUsed = clientHrs + m.internalHrs;

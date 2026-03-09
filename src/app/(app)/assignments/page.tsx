@@ -20,13 +20,13 @@ import {
 import { Search, Filter, Download, Trash2 } from "lucide-react";
 import { useClientData } from "@/lib/client-data-context";
 import {
-  teamMembers,
   defaultAssignmentRoles,
   getRoleColor,
   type Client,
+  type TeamMember,
 } from "@/lib/placeholder-data";
 
-function getMatrixMembers(clients: Client[]) {
+function getMatrixMembers(clients: Client[], teamMembers: TeamMember[]) {
   const active = clients.filter((c) => c.status === "A" || c.status === "N");
   const ids = new Set<string>();
   active.forEach((c) => {
@@ -68,10 +68,10 @@ export default function AssignmentsPage() {
   const [editCell, setEditCell] = useState<CellEdit | null>(null);
   const [editHours, setEditHours] = useState("");
   const [editRole, setEditRole] = useState("lead");
-  const { clients, updateClientField } = useClientData();
+  const { clients, teamMembers, updateClientField } = useClientData();
 
   const activeClients = clients.filter((c) => c.status === "A" || c.status === "N");
-  const matrixMembers = getMatrixMembers(clients);
+  const matrixMembers = getMatrixMembers(clients, teamMembers);
 
   const filteredClients = activeClients.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase());

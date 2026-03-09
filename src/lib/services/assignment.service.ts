@@ -70,7 +70,7 @@ export async function reassignClient(
   clientId: string,
   fromMemberId: string,
   toMemberId: string,
-  role: "lead" | "supporting",
+  role: "lead" | "supporting" | "oversight" | "payroll",
   allocatedHrs?: string
 ) {
   const today = new Date().toISOString().split("T")[0];
@@ -108,7 +108,7 @@ export async function reassignClient(
 
 export interface MatrixCell {
   assignmentId: string;
-  role: "lead" | "supporting";
+  role: "lead" | "supporting" | "oversight" | "payroll";
   allocatedHrs: number;
 }
 

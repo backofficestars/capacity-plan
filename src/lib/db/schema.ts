@@ -33,9 +33,9 @@ export const userRoleEnum = pgEnum("user_role", ["team_leader", "owner"]);
 
 export const clientStatusEnum = pgEnum("client_status", [
   "active",
-  "prospect",
-  "churned",
+  "not_active",
   "onboarding",
+  "prospect",
 ]);
 
 export const accountingSoftwareEnum = pgEnum("accounting_software", [
@@ -53,6 +53,8 @@ export const complexityLevelEnum = pgEnum("complexity_level", [
 export const assignmentRoleEnum = pgEnum("assignment_role", [
   "lead",
   "supporting",
+  "oversight",
+  "payroll",
 ]);
 
 export const serviceTypeEnum = pgEnum("service_type", [
@@ -223,6 +225,11 @@ export const clients = pgTable("clients", {
   complexityLevel: complexityLevelEnum("complexity_level").default("medium"),
   payrollEmployees: integer("payroll_employees").default(0),
   status: clientStatusEnum("status").default("active"),
+  priority: text("priority").default("B"),
+  dextHubdoc: text("dext_hubdoc"),
+  payrollSoftware: text("payroll_software"),
+  yearEnd: text("year_end"),
+  catchUpHrs: decimal("catch_up_hrs", { precision: 6, scale: 1 }).default("0"),
   monthlyBudgetHrs: decimal("monthly_budget_hrs", { precision: 5, scale: 1 }),
   monthlyBudgetAmt: decimal("monthly_budget_amt", { precision: 8, scale: 2 }),
   notes: text("notes"),
@@ -407,6 +414,21 @@ export const syncLog = pgTable("sync_log", {
   completedAt: timestamp("completed_at", { withTimezone: true }),
 });
 
+// ─── Edit Log (Undo Support) ────────────────────────────────────────────────
+
+export const editLog = pgTable("edit_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id"),
+  tableName: text("table_name").notNull(),
+  rowId: text("row_id").notNull(),
+  operation: text("operation").notNull(),
+  previousValues: jsonb("previous_values"),
+  newValues: jsonb("new_values"),
+  description: text("description").notNull(),
+  undone: boolean("undone").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
 // ─── Relations ───────────────────────────────────────────────────────────────
 
 export const teamMembersRelations = relations(teamMembers, ({ many }) => ({
@@ -502,6 +524,8 @@ export type Scenario = typeof scenarios.$inferSelect;
 export type NewScenario = typeof scenarios.$inferInsert;
 export type AppConfig = typeof appConfig.$inferSelect;
 export type SyncLogEntry = typeof syncLog.$inferSelect;
+export type EditLogEntry = typeof editLog.$inferSelect;
+export type NewEditLogEntry = typeof editLog.$inferInsert;
 export type User = typeof users.$inferSelect;
 
 // Skill keys as a const for type safety

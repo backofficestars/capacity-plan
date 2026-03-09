@@ -7,7 +7,7 @@ import { SKILL_LABELS, type SkillKey } from "@/lib/db/schema";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { teamMembers } from "@/lib/placeholder-data";
+import { useClientData } from "@/lib/client-data-context";
 
 // Skill ratings per team member (will be stored in DB later)
 const skillData: Record<string, Record<SkillKey, number>> = {
@@ -19,18 +19,6 @@ const skillData: Record<string, Record<SkillKey, number>> = {
   lynne: { demanding_clients: 2, complex_bookkeeping: 2, tech_ability: 2, payroll: 1, construction: 0, non_profit: 3, ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 3 },
   gurpreet: { demanding_clients: 2, complex_bookkeeping: 2, tech_ability: 3, payroll: 0, construction: 0, non_profit: 0, ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 3 },
 };
-
-const teamData = teamMembers
-  .filter((m) => skillData[m.id])
-  .map((m) => ({
-    id: m.id,
-    name: m.name,
-    role: m.role,
-    assignable: m.assignable,
-    weeklyCapacity: m.weeklyCapacity,
-    monthlyCapacity: m.monthlyCapacity,
-    skills: skillData[m.id],
-  }));
 
 function SkillDots({ value, max = 5 }: { value: number; max?: number }) {
   return (
@@ -48,6 +36,20 @@ function SkillDots({ value, max = 5 }: { value: number; max?: number }) {
 }
 
 export default function TeamPage() {
+  const { teamMembers } = useClientData();
+
+  const teamData = teamMembers
+    .filter((m) => skillData[m.id])
+    .map((m) => ({
+      id: m.id,
+      name: m.name,
+      role: m.role,
+      assignable: m.assignable,
+      weeklyCapacity: m.weeklyCapacity,
+      monthlyCapacity: m.monthlyCapacity,
+      skills: skillData[m.id],
+    }));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

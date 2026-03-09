@@ -35,9 +35,6 @@ import {
   Settings2,
 } from "lucide-react";
 import {
-  teamMembers,
-  activeClients,
-  getTeamMemberClientHours,
   internalHoursBreakdown,
   INTERNAL_CATEGORIES,
   defaultPtoOverrides,
@@ -46,6 +43,7 @@ import {
   type PtoOverride,
   type InternalCategoryId,
 } from "@/lib/placeholder-data";
+import { useClientData } from "@/lib/client-data-context";
 
 // ─── Week Utilities ─────────────────────────────────────────────────────────
 
@@ -119,11 +117,6 @@ function getStatusLabel(pct: number) {
   return { text: "underloaded", cls: "bg-blue-50 text-blue-600" };
 }
 
-// Only bookkeepers with internal hours or assignable (excluding non-worker roles)
-const capacityMembers = teamMembers.filter(
-  (m) => m.role === "Bookkeeper" || m.role === "Oversight"
-);
-
 // ─── Color palette for custom roles ─────────────────────────────────────────
 
 const ROLE_COLOR_OPTIONS = [
@@ -142,6 +135,26 @@ const ROLE_COLOR_OPTIONS = [
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function CapacityPage() {
+  const { clients, teamMembers } = useClientData();
+
+  // Derive from context
+  const capacityMembers = teamMembers.filter(
+    (m) => m.role === "Bookkeeper" || m.role === "Oversight"
+  );
+
+  function getTeamMemberClientHours(memberId: string): number {
+    return clients
+      .filter((c) => c.status !== "P")
+      .reduce((sum, c) => {
+        let hrs = 0;
+        if (c.leadBookkeeper === memberId) hrs += c.primaryHrs;
+        if (c.secondBookkeeper === memberId) hrs += c.secondHrs;
+        if (c.oversight === memberId) hrs += c.oversightHrs;
+        if (c.payrollBookkeeper === memberId) hrs += c.payrollHrs;
+        return sum + hrs;
+      }, 0);
+  }
+
   // ─── State ──────────────────────────────────────────────────────────────────
 
   const [activeTab, setActiveTab] = useState<"forecast" | "weekly">("forecast");

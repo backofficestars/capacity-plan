@@ -24,7 +24,7 @@ import { Plus, Search, Filter } from "lucide-react";
 import Link from "next/link";
 import { EditableField } from "@/components/editable-field";
 import { useClientData } from "@/lib/client-data-context";
-import { teamMembers, statusLabels } from "@/lib/placeholder-data";
+import { statusLabels } from "@/lib/placeholder-data";
 
 function getPriorityBadge(priority: string) {
   const color =
@@ -65,16 +65,16 @@ const statusOptions = [
   { value: "P", label: "Onboarding" },
 ];
 
-const memberOptions = [
-  { value: "", label: "—" },
-  ...teamMembers.map((m) => ({ value: m.id, label: m.name })),
-];
-
 export default function ClientsPage() {
   const [search, setSearch] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const { clients, updateClientField, getMemberName } = useClientData();
+  const { clients, teamMembers, updateClientField, getMemberName } = useClientData();
+
+  const memberOptions = [
+    { value: "", label: "—" },
+    ...teamMembers.map((m) => ({ value: m.id, label: m.name })),
+  ];
 
   const filtered = clients.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase());

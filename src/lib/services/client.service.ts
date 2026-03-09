@@ -43,7 +43,7 @@ export async function searchClients(query: string) {
 
 export async function getClientsByStatus(status: string) {
   return db.query.clients.findMany({
-    where: eq(clients.status, status as "active" | "prospect" | "churned" | "onboarding"),
+    where: eq(clients.status, status as "active" | "not_active" | "onboarding" | "prospect"),
     with: {
       assignments: {
         where: (a, { eq }) => eq(a.isActive, true),
