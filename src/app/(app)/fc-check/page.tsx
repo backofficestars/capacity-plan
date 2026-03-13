@@ -11,11 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
   CheckCircle2,
   FileQuestion,
   Info,
+  RefreshCw,
 } from "lucide-react";
 import { useClientData } from "@/lib/client-data-context";
 import { fcClients } from "@/lib/fc-placeholder-data";
@@ -60,12 +62,18 @@ export default function FcCheckPage() {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">FC Check</h1>
-        <p className="text-muted-foreground">
-          Compare Financial Cents client list against the Google Sheet to catch
-          missing clients
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">FC Check</h1>
+          <p className="text-muted-foreground">
+            Compare Financial Cents client list against the Google Sheet to catch
+            missing clients
+          </p>
+        </div>
+        <Button variant="outline" size="sm" className="gap-2">
+          <RefreshCw className="h-4 w-4" />
+          Check FC
+        </Button>
       </div>
 
       {/* Summary Cards */}

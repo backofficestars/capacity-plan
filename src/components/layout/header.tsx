@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, RefreshCw, Undo2 } from "lucide-react";
+import { LogOut, Undo2 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useClientData } from "@/lib/client-data-context";
 
@@ -68,11 +68,6 @@ export function Header() {
         >
           <Undo2 className="h-3.5 w-3.5" />
           Undo
-        </Button>
-
-        <Button variant="outline" size="sm" className="gap-2">
-          <RefreshCw className="h-3.5 w-3.5" />
-          Sync FC
         </Button>
 
         <DropdownMenu>

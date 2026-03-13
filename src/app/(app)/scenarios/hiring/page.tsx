@@ -36,9 +36,9 @@ const idealHireProfile: Record<SkillKey, number> = {
 };
 
 const clientsToAbsorb = [
-  { name: "Green Leaf Co-op", hours: 2, currentLead: "Ellen Kuipers" },
-  { name: "JetSet Travel", hours: 1.5, currentLead: "Terri McNamara" },
-  { name: "InnoTech Solutions (supporting)", hours: 2, currentLead: "Dawn Thompson" },
+  { name: "Reimer Associates", hours: 3.75, currentLead: "Kayla Puhov" },
+  { name: "Saddle Fit 4 Life", hours: 4.4, currentLead: "Kayla Puhov" },
+  { name: "PSBX (Tova & Baron Manett)", hours: 5.3, currentLead: "Kayla Puhov" },
 ];
 
 export default function HiringScenarioPage() {

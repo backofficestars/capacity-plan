@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   Users,
@@ -11,10 +12,12 @@ import {
   TrendingUp,
   UserPlus,
   Calendar,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useClientData } from "@/lib/client-data-context";
+import { toast } from "sonner";
 
 function getStatus(utilPct: number): string {
   if (utilPct >= 100) return "overloaded";
@@ -54,7 +57,29 @@ function getBarColor(status: string) {
 }
 
 export default function DashboardPage() {
-  const { clients, teamMembers } = useClientData();
+  const { clients, teamMembers, refreshData } = useClientData();
+  const [syncing, setSyncing] = useState(false);
+
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/sync/sheet", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(
+          `Synced: ${data.clientsUpdated} clients, ${data.teamMembersUpdated} team members, ${data.assignmentsUpdated} assignments`
+        );
+        // Reload page to pick up fresh data from the database
+        refreshData();
+      } else {
+        toast.error(`Sync failed: ${data.error}`);
+      }
+    } catch (err) {
+      toast.error("Sync failed — could not reach the server");
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   // Derive from context data instead of placeholder-data imports
   const assignableMembers = teamMembers.filter((m) => m.assignable);
@@ -119,6 +144,16 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            disabled={syncing}
+            onClick={handleSync}
+          >
+            <RefreshCw className={cn("h-4 w-4", syncing && "animate-spin")} />
+            {syncing ? "Syncing..." : "Sync Sheet"}
+          </Button>
           <Link
             href="/capacity"
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}

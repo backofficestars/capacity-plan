@@ -33,6 +33,10 @@ type ClientDataContextValue = {
   removeAssignment: (clientId: string, index: number) => void;
   getMemberName: (id: string | null) => string;
   undo: () => Promise<void>;
+  /** Reload all data from the database (full page refresh) */
+  refreshData: () => void;
+  /** Whether a sync/refresh is currently in progress */
+  isSyncing: boolean;
   canUndo: boolean;
   isPending: boolean;
 };
@@ -55,6 +59,7 @@ export function ClientDataProvider({
   );
   const [teamMembers] = useState<TeamMember[]>(initialTeamMembers);
   const [canUndoState, setCanUndoState] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   // Refresh canUndo state after mutations
@@ -197,6 +202,10 @@ export function ClientDataProvider({
     [teamMembers]
   );
 
+  const refreshData = useCallback(() => {
+    window.location.reload();
+  }, []);
+
   const undo = useCallback(async () => {
     const result = await undoLastEditAction();
     if (result.success) {
@@ -220,6 +229,8 @@ export function ClientDataProvider({
         removeAssignment,
         getMemberName,
         undo,
+        refreshData,
+        isSyncing,
         canUndo: canUndoState,
         isPending,
       }}
