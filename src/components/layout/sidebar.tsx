@@ -14,6 +14,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  GitCompareArrows,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ const navigation = [
   { name: "Assignments", href: "/assignments", icon: Grid3X3 },
   { name: "Capacity", href: "/capacity", icon: Calendar },
   { name: "Scenarios", href: "/scenarios", icon: FlaskConical },
+  { name: "FC Check", href: "/fc-check", icon: GitCompareArrows },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
