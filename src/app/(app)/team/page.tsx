@@ -158,20 +158,43 @@ function ProfileField({ label, value }: { label: string; value: string }) {
 }
 
 export default function TeamPage() {
-  const { teamMembers } = useClientData();
+  const { teamMembers, clients } = useClientData();
+
+  // Calculate each member's client hours (same logic as Dashboard)
+  function getMemberClientHours(memberId: string): number {
+    return clients.filter((c) => c.status !== "P").reduce((sum, c) => {
+      let hrs = 0;
+      if (c.leadBookkeeper === memberId) hrs += c.primaryHrs;
+      if (c.secondBookkeeper === memberId) hrs += c.secondHrs;
+      if (c.oversight === memberId) hrs += c.oversightHrs;
+      if (c.payrollBookkeeper === memberId) hrs += c.payrollHrs;
+      return sum + hrs;
+    }, 0);
+  }
 
   const teamData = teamMembers
     .filter((m) => skillData[m.id])
-    .map((m) => ({
-      id: m.id,
-      name: m.name,
-      role: m.role,
-      assignable: m.assignable,
-      weeklyCapacity: m.weeklyCapacity,
-      monthlyCapacity: m.monthlyCapacity,
-      skills: skillData[m.id],
-      survey: surveyProfiles[m.id] ?? null,
-    }));
+    .map((m) => {
+      const clientHrs = getMemberClientHours(m.id);
+      const totalUsed = clientHrs + m.meetingHrs + m.internalHrs + (m.catchupMonthlyHrs ?? 0);
+      const available = Math.round((m.monthlyCapacity - totalUsed) * 10) / 10;
+      return {
+        id: m.id,
+        name: m.name,
+        role: m.role,
+        assignable: m.assignable,
+        weeklyCapacity: m.weeklyCapacity,
+        monthlyCapacity: m.monthlyCapacity,
+        available,
+        skills: skillData[m.id],
+        survey: surveyProfiles[m.id] ?? null,
+      };
+    })
+    // Sort: assignable first, then by most available capacity
+    .sort((a, b) => {
+      if (a.assignable !== b.assignable) return a.assignable ? -1 : 1;
+      return b.available - a.available;
+    });
 
   return (
     <div className="space-y-6">
