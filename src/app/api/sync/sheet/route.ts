@@ -150,11 +150,12 @@ export async function POST() {
       teamMembersUpdated++;
     }
 
-    // ─── 4. Delete existing assignments (we'll re-create from sheet) ──────
+    // ─── 4. Delete existing assignments & clients (full refresh) ──────────
 
     await db.delete(schema.assignments);
+    await db.delete(schema.clients);
 
-    // ─── 5. Upsert clients and create assignments ─────────────────────────
+    // ─── 5. Insert clients and create assignments from sheet ─────────────
 
     for (const row of mainData) {
       const clientName = cell(row, 2);
@@ -174,7 +175,7 @@ export async function POST() {
       // Use the client name as a stable ID (normalised)
       const fcId = clientName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
 
-      // Upsert client
+      // Insert client (table was cleared above, so no conflicts)
       const clientRows = await db
         .insert(schema.clients)
         .values({
@@ -190,23 +191,6 @@ export async function POST() {
           catchUpHrs: String(catchUpHrs),
           monthlyBudgetHrs: String(totalMonthlyHrs),
           notes,
-        })
-        .onConflictDoUpdate({
-          target: schema.clients.fcId,
-          set: {
-            clientName,
-            status: mapStatus(status),
-            priority,
-            accountingSoftware: mapSoftware(software),
-            complexityLevel: mapComplexity(complexity),
-            dextHubdoc: dextHubdoc || null,
-            payrollSoftware: payrollSoftware || null,
-            yearEnd: yearEnd || null,
-            catchUpHrs: String(catchUpHrs),
-            monthlyBudgetHrs: String(totalMonthlyHrs),
-            notes,
-            updatedAt: new Date(),
-          },
         })
         .returning({ id: schema.clients.id });
 
