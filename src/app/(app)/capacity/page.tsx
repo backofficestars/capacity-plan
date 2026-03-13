@@ -142,17 +142,22 @@ export default function CapacityPage() {
     (m) => m.role === "Bookkeeper" || m.role === "Oversight"
   );
 
+  // Active + Not-Active clients only — prospect work is covered by catchupMonthlyHrs
   function getTeamMemberClientHours(memberId: string): number {
-    return clients
-      .filter((c) => c.status !== "P")
-      .reduce((sum, c) => {
-        let hrs = 0;
-        if (c.leadBookkeeper === memberId) hrs += c.primaryHrs;
-        if (c.secondBookkeeper === memberId) hrs += c.secondHrs;
-        if (c.oversight === memberId) hrs += c.oversightHrs;
-        if (c.payrollBookkeeper === memberId) hrs += c.payrollHrs;
-        return sum + hrs;
-      }, 0);
+    return clients.filter((c) => c.status !== "P").reduce((sum, c) => {
+      let hrs = 0;
+      if (c.leadBookkeeper === memberId) hrs += c.primaryHrs;
+      if (c.secondBookkeeper === memberId) hrs += c.secondHrs;
+      if (c.oversight === memberId) hrs += c.oversightHrs;
+      if (c.payrollBookkeeper === memberId) hrs += c.payrollHrs;
+      return sum + hrs;
+    }, 0);
+  }
+
+  // Catchup/setup monthly hours — stored directly on team member from spreadsheet summary
+  function getTeamMemberCatchupHours(memberId: string): number {
+    const member = teamMembers.find((m) => m.id === memberId);
+    return member?.catchupMonthlyHrs ?? 0;
   }
 
   // ─── State ──────────────────────────────────────────────────────────────────
@@ -187,7 +192,10 @@ export default function CapacityPage() {
   function getMemberWeeklyData(memberId: string, weekKey: string) {
     const member = teamMembers.find((m) => m.id === memberId)!;
     const clientHrsMonthly = getTeamMemberClientHours(memberId);
+    const catchupHrsMonthly = getTeamMemberCatchupHours(memberId);
     const clientHrsWeekly = Math.round((clientHrsMonthly / 4.33) * 10) / 10;
+    const catchupHrsWeekly = Math.round((catchupHrsMonthly / 4.33) * 10) / 10;
+    const meetingHrsWeekly = Math.round((member.meetingHrs / 4.33) * 10) / 10;
 
     const breakdown = internalHours[memberId];
     const internalTotal = breakdown
@@ -199,7 +207,7 @@ export default function CapacityPage() {
       (o) => o.memberId === memberId && o.weekStart === weekKey
     );
     const effectiveCapacity = pto ? pto.availableHrs : member.weeklyCapacity;
-    const totalUsed = clientHrsWeekly + internalWeekly;
+    const totalUsed = clientHrsWeekly + meetingHrsWeekly + internalWeekly + catchupHrsWeekly;
     const utilPct = effectiveCapacity > 0 ? (totalUsed / effectiveCapacity) * 100 : totalUsed > 0 ? 100 : 0;
 
     return {

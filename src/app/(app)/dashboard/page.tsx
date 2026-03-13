@@ -60,29 +60,34 @@ export default function DashboardPage() {
   const assignableMembers = teamMembers.filter((m) => m.assignable);
   const activeClients = clients.filter((c) => c.status === "A" || c.status === "N");
 
+  // Active + Not-Active clients only — prospect work is covered by catchupMonthlyHrs
   function getTeamMemberClientHours(memberId: string): number {
-    return clients
-      .filter((c) => c.status !== "P")
-      .reduce((sum, c) => {
-        let hrs = 0;
-        if (c.leadBookkeeper === memberId) hrs += c.primaryHrs;
-        if (c.secondBookkeeper === memberId) hrs += c.secondHrs;
-        if (c.oversight === memberId) hrs += c.oversightHrs;
-        if (c.payrollBookkeeper === memberId) hrs += c.payrollHrs;
-        return sum + hrs;
-      }, 0);
+    return clients.filter((c) => c.status !== "P").reduce((sum, c) => {
+      let hrs = 0;
+      if (c.leadBookkeeper === memberId) hrs += c.primaryHrs;
+      if (c.secondBookkeeper === memberId) hrs += c.secondHrs;
+      if (c.oversight === memberId) hrs += c.oversightHrs;
+      if (c.payrollBookkeeper === memberId) hrs += c.payrollHrs;
+      return sum + hrs;
+    }, 0);
+  }
+
+  // Catchup/setup monthly hours — stored directly on team member from spreadsheet summary
+  function getTeamMemberCatchupHours(memberId: string): number {
+    const member = teamMembers.find((m) => m.id === memberId);
+    return member?.catchupMonthlyHrs ?? 0;
   }
 
   function getTeamMemberClientCount(memberId: string): number {
     return clients
-      .filter((c) => c.status !== "P")
       .filter((c) => c.leadBookkeeper === memberId || c.secondBookkeeper === memberId)
       .length;
   }
 
   const teamData = assignableMembers.map((m) => {
     const clientHrs = getTeamMemberClientHours(m.id);
-    const totalUsed = clientHrs + m.internalHrs;
+    const catchupHrs = getTeamMemberCatchupHours(m.id);
+    const totalUsed = clientHrs + m.meetingHrs + m.internalHrs + catchupHrs;
     const utilPct = (totalUsed / m.monthlyCapacity) * 100;
     return {
       ...m,

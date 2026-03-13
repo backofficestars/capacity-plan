@@ -1,0 +1,1 @@
+ALTER TABLE "team_members" ADD COLUMN "catchup_monthly_hrs" numeric(5, 1) DEFAULT '0.0';

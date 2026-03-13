@@ -22,6 +22,8 @@ export type TeamMember = {
   monthlyCapacity: number;
   monthlyOngoingHrs: number;
   internalHrs: number;
+  meetingHrs: number; // Client collaboration meeting hours (from spreadsheet col S)
+  catchupMonthlyHrs: number; // Monthly catchup/setup hours (from spreadsheet summary)
   assignable: boolean;
   skills?: SkillRatings;
 };
@@ -173,18 +175,18 @@ export const defaultPtoOverrides: PtoOverride[] = [
 ];
 
 export const teamMembers: TeamMember[] = [
-  { id: "kayla", name: "Kayla Puhov", role: "Bookkeeper", weeklyCapacity: 50, monthlyCapacity: 200, monthlyOngoingHrs: 141.35, internalHrs: 26.5, assignable: true, skills: teamSkillProfiles.kayla },
-  { id: "ellen", name: "Ellen Kuipers", role: "Bookkeeper", weeklyCapacity: 35, monthlyCapacity: 140, monthlyOngoingHrs: 121.86, internalHrs: 12, assignable: true, skills: teamSkillProfiles.ellen },
-  { id: "shannon", name: "Shannon Shier", role: "Bookkeeper", weeklyCapacity: 50, monthlyCapacity: 200, monthlyOngoingHrs: 91.95, internalHrs: 7, assignable: true, skills: teamSkillProfiles.shannon },
-  { id: "dawn", name: "Dawn Thompson", role: "Bookkeeper", weeklyCapacity: 30, monthlyCapacity: 120, monthlyOngoingHrs: 80.78, internalHrs: 11, assignable: true, skills: teamSkillProfiles.dawn },
-  { id: "terri", name: "Terri McNamara", role: "Bookkeeper", weeklyCapacity: 20, monthlyCapacity: 80, monthlyOngoingHrs: 63.17, internalHrs: 11, assignable: true, skills: teamSkillProfiles.terri },
-  { id: "lynne", name: "Lynne Brocklehurst", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 19.65, internalHrs: 5.5, assignable: false, skills: teamSkillProfiles.lynne },
-  { id: "gurpreet", name: "Gurpreet Kaur", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 15.08, internalHrs: 5.75, assignable: false, skills: teamSkillProfiles.gurpreet },
-  { id: "aldora", name: "Aldora", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 17, internalHrs: 14, assignable: false },
-  { id: "kim", name: "Kim", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 11.15, internalHrs: 2.5, assignable: false },
-  { id: "farrell", name: "Farrell", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 5.43, internalHrs: 5, assignable: false },
-  { id: "sunny", name: "Sunny", role: "Oversight", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 30.4, internalHrs: 0, assignable: false },
-  { id: "pat", name: "Pat", role: "Admin", weeklyCapacity: 15, monthlyCapacity: 60, monthlyOngoingHrs: 2.8, internalHrs: 0, assignable: false },
+  { id: "kayla", name: "Kayla Puhov", role: "Bookkeeper", weeklyCapacity: 50, monthlyCapacity: 200, monthlyOngoingHrs: 141.35, internalHrs: 26.5, meetingHrs: 3.9, catchupMonthlyHrs: 40.0, assignable: true, skills: teamSkillProfiles.kayla },
+  { id: "ellen", name: "Ellen Kuipers", role: "Bookkeeper", weeklyCapacity: 35, monthlyCapacity: 140, monthlyOngoingHrs: 121.86, internalHrs: 12, meetingHrs: 3.8, catchupMonthlyHrs: 20.0, assignable: true, skills: teamSkillProfiles.ellen },
+  { id: "shannon", name: "Shannon Shier", role: "Bookkeeper", weeklyCapacity: 60, monthlyCapacity: 240, monthlyOngoingHrs: 91.95, internalHrs: 7, meetingHrs: 1.0, catchupMonthlyHrs: 60.0, assignable: true, skills: teamSkillProfiles.shannon },
+  { id: "dawn", name: "Dawn Thompson", role: "Bookkeeper", weeklyCapacity: 25, monthlyCapacity: 100, monthlyOngoingHrs: 80.78, internalHrs: 11, meetingHrs: 0, catchupMonthlyHrs: 74.0, assignable: true, skills: teamSkillProfiles.dawn },
+  { id: "terri", name: "Terri McNamara", role: "Bookkeeper", weeklyCapacity: 20, monthlyCapacity: 80, monthlyOngoingHrs: 63.17, internalHrs: 11, meetingHrs: 0.4, catchupMonthlyHrs: 0, assignable: true, skills: teamSkillProfiles.terri },
+  { id: "lynne", name: "Lynne Brocklehurst", role: "Bookkeeper", weeklyCapacity: 15, monthlyCapacity: 60, monthlyOngoingHrs: 19.65, internalHrs: 5.5, meetingHrs: 0.3, catchupMonthlyHrs: 28.0, assignable: false, skills: teamSkillProfiles.lynne },
+  { id: "gurpreet", name: "Gurpreet Kaur", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 15.08, internalHrs: 5.75, meetingHrs: 0.2, catchupMonthlyHrs: 0, assignable: false, skills: teamSkillProfiles.gurpreet },
+  { id: "aldora", name: "Aldora", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 17, internalHrs: 14, meetingHrs: 0, catchupMonthlyHrs: 0, assignable: false },
+  { id: "kim", name: "Kim", role: "Bookkeeper", weeklyCapacity: 5, monthlyCapacity: 20, monthlyOngoingHrs: 11.15, internalHrs: 2.5, meetingHrs: 0.2, catchupMonthlyHrs: 0, assignable: false },
+  { id: "farrell", name: "Farrell", role: "Bookkeeper", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 5.43, internalHrs: 5, meetingHrs: 0, catchupMonthlyHrs: 0, assignable: false },
+  { id: "sunny", name: "Sunny", role: "Oversight", weeklyCapacity: 10, monthlyCapacity: 40, monthlyOngoingHrs: 30.4, internalHrs: 0, meetingHrs: 0, catchupMonthlyHrs: 0, assignable: false },
+  { id: "pat", name: "Pat", role: "Admin", weeklyCapacity: 15, monthlyCapacity: 60, monthlyOngoingHrs: 2.8, internalHrs: 0, meetingHrs: 0.1, catchupMonthlyHrs: 0, assignable: false },
 ];
 
 // The 5 assignable bookkeepers (for scenarios and capacity planning)

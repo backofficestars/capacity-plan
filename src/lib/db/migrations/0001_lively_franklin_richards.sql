@@ -1,0 +1,1 @@
+ALTER TABLE "team_members" ADD COLUMN "meeting_hrs" numeric(4, 1) DEFAULT '0.0';

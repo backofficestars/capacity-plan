@@ -184,6 +184,8 @@ export const teamMembers = pgTable("team_members", {
   yearsExperience: decimal("years_experience", { precision: 3, scale: 1 }),
   industryExperience: text("industry_experience"),
   hireDate: date("hire_date"),
+  meetingHrs: decimal("meeting_hrs", { precision: 4, scale: 1 }).default("0.0"),
+  catchupMonthlyHrs: decimal("catchup_monthly_hrs", { precision: 5, scale: 1 }).default("0.0"),
   isActive: boolean("is_active").default(true),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),

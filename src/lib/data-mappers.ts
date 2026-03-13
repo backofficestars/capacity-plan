@@ -131,6 +131,8 @@ export function mapDbTeamMemberToUi(
     monthlyCapacity: weeklyCapacity * 4,
     monthlyOngoingHrs,
     internalHrs,
+    meetingHrs: Number(t.meetingHrs ?? 0),
+    catchupMonthlyHrs: Number(t.catchupMonthlyHrs ?? 0),
     assignable: t.assignable ?? false,
     skills,
   };

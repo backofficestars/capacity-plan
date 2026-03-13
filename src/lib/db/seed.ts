@@ -111,6 +111,8 @@ async function seed() {
         assignable: tm.assignable,
         employmentType: "contractor",
         weeklyCapacityHrs: String(tm.weeklyCapacity),
+        meetingHrs: String(tm.meetingHrs),
+        catchupMonthlyHrs: String(tm.catchupMonthlyHrs),
         isActive: true,
       })
       .onConflictDoUpdate({
@@ -120,6 +122,8 @@ async function seed() {
           role: mapTeamRole(tm.role),
           assignable: tm.assignable,
           weeklyCapacityHrs: String(tm.weeklyCapacity),
+          meetingHrs: String(tm.meetingHrs),
+          catchupMonthlyHrs: String(tm.catchupMonthlyHrs),
         },
       })
       .returning({ id: schema.teamMembers.id, fcId: schema.teamMembers.fcId });
