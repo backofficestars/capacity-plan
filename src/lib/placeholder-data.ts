@@ -28,13 +28,13 @@ export type TeamMember = {
   skills?: SkillRatings;
 };
 
-/** Skill data from BOS Bookkeeper skill profiles.xlsx */
+/** Skill data from BOS Bookkeeper skill profiles.xlsx + March 2026 Bookkeeper Skills survey */
 export const teamSkillProfiles: Record<string, SkillRatings> = {
-  ellen:    { demanding_clients: 4, complex_bookkeeping: 2, tech_ability: 3, payroll: 2, construction: 1, non_profit: 2, ecommerce: 0, a2x_dext: 0, xero: 3, qbo: 3 },
-  kayla:    { demanding_clients: 5, complex_bookkeeping: 5, tech_ability: 5, payroll: 4, construction: 5, non_profit: 5, ecommerce: 4, a2x_dext: 0, xero: 4, qbo: 5 },
-  dawn:     { demanding_clients: 4, complex_bookkeeping: 4, tech_ability: 5, payroll: 3, construction: 4, non_profit: 0, ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 5 },
-  shannon:  { demanding_clients: 5, complex_bookkeeping: 5, tech_ability: 5, payroll: 0, construction: 1, non_profit: 3, ecommerce: 1, a2x_dext: 5, xero: 5, qbo: 5 },
-  terri:    { demanding_clients: 3, complex_bookkeeping: 3, tech_ability: 4, payroll: 5, construction: 0, non_profit: 0, ecommerce: 4, a2x_dext: 0, xero: 1, qbo: 4 },
+  ellen:    { demanding_clients: 4, complex_bookkeeping: 2, tech_ability: 3, payroll: 2, construction: 1, non_profit: 3, ecommerce: 1, a2x_dext: 0, xero: 3, qbo: 3 },
+  kayla:    { demanding_clients: 5, complex_bookkeeping: 5, tech_ability: 5, payroll: 5, construction: 5, non_profit: 5, ecommerce: 2, a2x_dext: 0, xero: 4, qbo: 5 },
+  dawn:     { demanding_clients: 4, complex_bookkeeping: 4, tech_ability: 5, payroll: 2, construction: 4, non_profit: 0, ecommerce: 1, a2x_dext: 0, xero: 0, qbo: 5 },
+  shannon:  { demanding_clients: 5, complex_bookkeeping: 5, tech_ability: 5, payroll: 0, construction: 2, non_profit: 2, ecommerce: 3, a2x_dext: 5, xero: 5, qbo: 5 },
+  terri:    { demanding_clients: 3, complex_bookkeeping: 3, tech_ability: 4, payroll: 5, construction: 2, non_profit: 3, ecommerce: 1, a2x_dext: 0, xero: 1, qbo: 4 },
   lynne:    { demanding_clients: 2, complex_bookkeeping: 4, tech_ability: 3, payroll: 3, construction: 0, non_profit: 0, ecommerce: 4, a2x_dext: 1, xero: 0, qbo: 5 },
   gurpreet: { demanding_clients: 3, complex_bookkeeping: 4, tech_ability: 3, payroll: 3, construction: 0, non_profit: 0, ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 4 },
 };
