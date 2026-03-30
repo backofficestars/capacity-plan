@@ -71,6 +71,9 @@ export async function GET() {
         if (rawStatus.includes("inactive") || rawStatus === "0") status = "Inactive";
         if (rawStatus.includes("archiv")) status = "Archived";
 
+        // Only include active clients in the comparison
+        if (status !== "Active") continue;
+
         allClients.push({ name, status });
       }
 
