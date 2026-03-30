@@ -104,11 +104,39 @@ export async function POST() {
   try {
     // ─── 1. Read main data + summary from the Sheet ───────────────────────
 
-    // Main data: row 2 is headers, rows 3–80 are client data
-    const mainData = await readSheetRange("'Client Assignments'!A3:AA80");
+    // Read a wide range that covers both client data and the summary section below it
+    // Using a generous range so it works even if rows are added/removed
+    const allData = await readSheetRange("'Client Assignments'!A3:AA150");
 
-    // Summary: rows 82–95 have team member totals
-    const summaryData = await readSheetRange("'Client Assignments'!D82:S95");
+    // Split into client rows (have a value in column C = client name)
+    // and find the summary section (starts with a row where col D = "Bookkeeper")
+    const mainData: string[][] = [];
+    let summaryData: string[][] = [];
+    let foundSummary = false;
+
+    for (let i = 0; i < allData.length; i++) {
+      const row = allData[i];
+      // The summary section header has "Bookkeeper" in column D (index 3)
+      // but since summary is read as D:S, we need to check if col D has "Bookkeeper"
+      if (!foundSummary && cell(row, 3)?.toLowerCase() === "bookkeeper") {
+        // Found the summary header — everything after this is summary data
+        foundSummary = true;
+        // Grab remaining rows, offset to start at column D (index 3)
+        summaryData = allData.slice(i + 1).map((r) => r.slice(3));
+        break;
+      }
+      // Only include rows with a client name in column C
+      if (cell(row, 2)) {
+        mainData.push(row);
+      }
+    }
+
+    if (!foundSummary) {
+      return NextResponse.json(
+        { success: false, error: "Could not find the summary section (row with 'Bookkeeper' in column D) in the sheet" },
+        { status: 400 }
+      );
+    }
 
     // ─── 2. Build team member ID map (fcId → UUID) ────────────────────────
 
