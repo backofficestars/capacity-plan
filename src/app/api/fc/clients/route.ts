@@ -4,6 +4,10 @@
  * Fetches all clients from Financial Cents API.
  * Handles pagination (100 per page) automatically.
  * Auth: Bearer token via FINANCIAL_CENTS_API_KEY env var.
+ *
+ * FC API uses `is_archived` (boolean) to indicate active/inactive:
+ *   is_archived: false  → active client
+ *   is_archived: true   → inactive/archived client
  */
 
 import { NextResponse } from "next/server";
@@ -13,8 +17,10 @@ const FC_BASE = "https://app.financial-cents.com/api/v1";
 type FcApiClient = {
   id: string;
   company_name?: string;
+  display_name?: string;
   name?: string;
-  status?: string;
+  is_archived?: boolean;
+  archived_at?: string | null;
   [key: string]: unknown;
 };
 
@@ -31,6 +37,8 @@ export async function GET() {
     const allClients: { name: string; status: string }[] = [];
     let page = 1;
     let hasMore = true;
+    let totalFromApi = 0;
+    let skippedArchived = 0;
 
     // Paginate through all results (100 per page)
     while (hasMore) {
@@ -61,20 +69,19 @@ export async function GET() {
         break;
       }
 
+      totalFromApi += clients.length;
+
       for (const c of clients) {
-        const name = c.company_name || c.name || "";
+        const name = c.company_name || c.display_name || c.name || "";
         if (!name) continue;
 
-        // Normalise status to Active / Inactive / Archived
-        const rawStatus = (c.status ?? "").toString().toLowerCase();
-        let status = "Active";
-        if (rawStatus.includes("inactive") || rawStatus === "0") status = "Inactive";
-        if (rawStatus.includes("archiv")) status = "Archived";
+        // Skip archived/inactive clients
+        if (c.is_archived === true || c.archived_at != null) {
+          skippedArchived++;
+          continue;
+        }
 
-        // Only include active clients in the comparison
-        if (status !== "Active") continue;
-
-        allClients.push({ name, status });
+        allClients.push({ name, status: "Active" });
       }
 
       // If we got fewer than 100, we've reached the last page
@@ -89,6 +96,8 @@ export async function GET() {
       success: true,
       clients: allClients,
       total: allClients.length,
+      totalFromApi,
+      skippedArchived,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
