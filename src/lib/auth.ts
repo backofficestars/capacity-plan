@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import { NextResponse } from "next/server";
 
 const allowedEmails = (process.env.ALLOWED_EMAILS ?? "")
   .split(",")
@@ -44,10 +45,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     authorized({ auth: session, request }) {
       // Dev-only: skip auth when BYPASS_AUTH is set
       if (process.env.BYPASS_AUTH === "true") return true;
+
+      const { pathname } = request.nextUrl;
+      const isApiRoute = pathname.startsWith("/api/");
+
+      // Server-to-server calls (e.g. the nightly FC check) authenticate with a
+      // shared secret instead of a browser session.
+      if (isApiRoute && process.env.CRON_SECRET) {
+        const authHeader = request.headers.get("authorization");
+        if (authHeader === `Bearer ${process.env.CRON_SECRET}`) return true;
+      }
+
       const isLoggedIn = !!session?.user;
-      const isOnLogin = request.nextUrl.pathname.startsWith("/login");
+      const isOnLogin = pathname.startsWith("/login");
       if (isOnLogin) return true;
-      return isLoggedIn;
+      if (isLoggedIn) return true;
+
+      // For API routes, respond with JSON instead of redirecting to the HTML
+      // login page — client code calling fetch() would otherwise try to
+      // JSON.parse() the login page's HTML and crash with a confusing error.
+      if (isApiRoute) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      return false;
     },
   },
   pages: {

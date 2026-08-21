@@ -64,6 +64,18 @@ export default function DashboardPage() {
     setSyncing(true);
     try {
       const res = await fetch("/api/sync/sheet", { method: "POST" });
+
+      if (res.status === 401) {
+        toast.error("Your session has expired — refresh the page and sign in again.");
+        return;
+      }
+
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        toast.error(`Unexpected response from the server (status ${res.status}). Try refreshing the page.`);
+        return;
+      }
+
       const data = await res.json();
       if (data.success) {
         toast.success(

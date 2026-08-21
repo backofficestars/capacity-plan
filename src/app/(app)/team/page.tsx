@@ -1,24 +1,37 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { SKILL_LABELS, type SkillKey } from "@/lib/db/schema";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Loader2, Plus, UserMinus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClientData } from "@/lib/client-data-context";
+import { deactivateTeamMemberAction } from "@/lib/actions/team-actions";
+import { toast } from "sonner";
 
-// Skill ratings per team member (will be stored in DB later)
-const skillData: Record<string, Record<SkillKey, number>> = {
-  kayla: { demanding_clients: 5, complex_bookkeeping: 5, tech_ability: 5, payroll: 4, construction: 5, non_profit: 5, ecommerce: 4, a2x_dext: 0, xero: 4, qbo: 5 },
-  ellen: { demanding_clients: 4, complex_bookkeeping: 2, tech_ability: 3, payroll: 2, construction: 1, non_profit: 2, ecommerce: 0, a2x_dext: 0, xero: 3, qbo: 3 },
-  shannon: { demanding_clients: 5, complex_bookkeeping: 5, tech_ability: 5, payroll: 0, construction: 1, non_profit: 3, ecommerce: 1, a2x_dext: 5, xero: 5, qbo: 5 },
-  dawn: { demanding_clients: 4, complex_bookkeeping: 4, tech_ability: 5, payroll: 3, construction: 4, non_profit: 0, ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 5 },
-  terri: { demanding_clients: 3, complex_bookkeeping: 3, tech_ability: 4, payroll: 5, construction: 0, non_profit: 0, ecommerce: 4, a2x_dext: 0, xero: 1, qbo: 4 },
-  lynne: { demanding_clients: 2, complex_bookkeeping: 2, tech_ability: 2, payroll: 1, construction: 0, non_profit: 3, ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 3 },
-  gurpreet: { demanding_clients: 2, complex_bookkeeping: 2, tech_ability: 3, payroll: 0, construction: 0, non_profit: 0, ecommerce: 0, a2x_dext: 0, xero: 0, qbo: 3 },
+const EMPTY_SKILLS: Record<SkillKey, number> = {
+  demanding_clients: 0,
+  complex_bookkeeping: 0,
+  tech_ability: 0,
+  payroll: 0,
+  construction: 0,
+  non_profit: 0,
+  ecommerce: 0,
+  a2x_dext: 0,
+  xero: 0,
+  qbo: 0,
 };
 
 // ─── Survey profile data (from March 2026 Bookkeeper Skills survey) ─────────
@@ -158,7 +171,9 @@ function ProfileField({ label, value }: { label: string; value: string }) {
 }
 
 export default function TeamPage() {
-  const { teamMembers, clients } = useClientData();
+  const { teamMembers, clients, refreshData } = useClientData();
+  const [pendingDeactivate, setPendingDeactivate] = useState<{ id: string; name: string } | null>(null);
+  const [deactivating, setDeactivating] = useState(false);
 
   // Calculate each member's client hours (same logic as Dashboard)
   function getMemberClientHours(memberId: string): number {
@@ -173,7 +188,6 @@ export default function TeamPage() {
   }
 
   const teamData = teamMembers
-    .filter((m) => skillData[m.id])
     .map((m) => {
       const clientHrs = getMemberClientHours(m.id);
       const totalUsed = clientHrs + m.meetingHrs + m.internalHrs + (m.catchupMonthlyHrs ?? 0);
@@ -186,7 +200,7 @@ export default function TeamPage() {
         weeklyCapacity: m.weeklyCapacity,
         monthlyCapacity: m.monthlyCapacity,
         available,
-        skills: skillData[m.id],
+        skills: m.skills ?? EMPTY_SKILLS,
         survey: surveyProfiles[m.id] ?? null,
       };
     })
@@ -195,6 +209,20 @@ export default function TeamPage() {
       if (a.assignable !== b.assignable) return a.assignable ? -1 : 1;
       return b.available - a.available;
     });
+
+  async function handleConfirmDeactivate() {
+    if (!pendingDeactivate) return;
+    setDeactivating(true);
+    const result = await deactivateTeamMemberAction(pendingDeactivate.id);
+    setDeactivating(false);
+    if (result.success) {
+      toast.success(`${pendingDeactivate.name} removed from the team`);
+      setPendingDeactivate(null);
+      refreshData();
+    } else {
+      toast.error(result.error ?? "Failed to remove team member");
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -210,6 +238,31 @@ export default function TeamPage() {
           Add Team Member
         </Link>
       </div>
+
+      <Dialog
+        open={pendingDeactivate !== null}
+        onOpenChange={(open) => { if (!open) setPendingDeactivate(null); }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove {pendingDeactivate?.name}?</DialogTitle>
+            <DialogDescription>
+              This hides them from the team roster and capacity calculations. Their
+              historical client assignments are kept, not deleted — you can reactivate
+              them later from the database if needed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingDeactivate(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={deactivating} onClick={handleConfirmDeactivate}>
+              {deactivating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {teamData.map((member) => (
@@ -280,10 +333,18 @@ export default function TeamPage() {
                 </>
               )}
 
-              <div className="pt-2">
-                <Link href={`/team/${member.id}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}>
+              <div className="flex gap-2 pt-2">
+                <Link href={`/team/${member.id}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1")}>
                   View Profile
                 </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setPendingDeactivate({ id: member.id, name: member.name })}
+                >
+                  <UserMinus className="h-4 w-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -45,6 +45,18 @@ export default function FcCheckPage() {
     setError(null);
     try {
       const res = await fetch("/api/fc/clients");
+
+      if (res.status === 401) {
+        setError("Your session has expired — refresh the page and sign in again.");
+        return;
+      }
+
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        setError(`Unexpected response from the server (status ${res.status}). Try refreshing the page.`);
+        return;
+      }
+
       const json = await res.json();
       if (!json.success) {
         setError(json.error ?? "Unknown error fetching FC clients");

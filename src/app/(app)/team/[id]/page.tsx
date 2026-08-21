@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -9,13 +9,22 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SKILL_LABELS, type SkillKey } from "@/lib/db/schema";
-import { ArrowLeft, Save, Pencil, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Pencil, Loader2, UserMinus } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useClientData } from "@/lib/client-data-context";
 import { teamSkillProfiles } from "@/lib/placeholder-data";
 import { updateTeamMemberSkillsAction } from "@/lib/actions/client-actions";
+import { deactivateTeamMemberAction } from "@/lib/actions/team-actions";
 import { toast } from "sonner";
 
 function SkillSlider({
@@ -61,8 +70,11 @@ function SkillSlider({
 
 export default function TeamMemberDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const { teamMembers, clients } = useClientData();
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   const member = teamMembers.find((m) => m.id === id);
 
@@ -128,6 +140,19 @@ export default function TeamMemberDetailPage() {
     );
   }
 
+  async function handleRemove() {
+    setRemoving(true);
+    const result = await deactivateTeamMemberAction(member!.id);
+    setRemoving(false);
+    if (result.success) {
+      toast.success(`${member!.name} removed from the team`);
+      router.push("/team");
+      router.refresh();
+    } else {
+      toast.error(result.error ?? "Failed to remove team member");
+    }
+  }
+
   const totalAssignedMonthly = assignedClients.reduce((s, c) => s + c.hours, 0);
   const utilization =
     member.monthlyCapacity > 0
@@ -151,6 +176,16 @@ export default function TeamMemberDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          {!editing && (
+            <Button
+              variant="outline"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setConfirmingRemove(true)}
+            >
+              <UserMinus className="mr-2 h-4 w-4" />
+              Remove
+            </Button>
+          )}
           {editing ? (
             <>
               <Button variant="outline" onClick={() => {
@@ -324,6 +359,27 @@ export default function TeamMemberDetailPage() {
           </Card>
         </div>
       </div>
+
+      <Dialog open={confirmingRemove} onOpenChange={setConfirmingRemove}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove {member.name}?</DialogTitle>
+            <DialogDescription>
+              This hides them from the team roster and capacity calculations. Their
+              historical client assignments are kept, not deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmingRemove(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={removing} onClick={handleRemove}>
+              {removing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

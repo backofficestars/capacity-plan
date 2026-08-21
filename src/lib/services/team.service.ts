@@ -73,6 +73,15 @@ export async function updateTeamMember(
   return updated;
 }
 
+/** Soft-delete: hides the member from the app without breaking historical assignments */
+export async function deactivateTeamMember(id: string) {
+  return updateTeamMember(id, { isActive: false, assignable: false });
+}
+
+export async function reactivateTeamMember(id: string) {
+  return updateTeamMember(id, { isActive: true });
+}
+
 export async function updateTeamMemberSkills(
   teamMemberId: string,
   skills: Partial<Record<SkillKey, number>>
