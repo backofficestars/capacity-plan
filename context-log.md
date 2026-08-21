@@ -1,0 +1,12 @@
+# Context Log
+
+## 2026-08-21
+
+- Removed 5 departed team members (Dawn, Ellen, Farrell, Aldora, Gurpreet) via soft-delete (`isActive`/`assignable` flags), preserving their historical assignment data; added Add/Remove Team Member UI ([team/new/page.tsx](src/app/(app)/team/new/page.tsx), [team-actions.ts](src/lib/actions/team-actions.ts)).
+- Added Teina Goffe and LaRon Harris as team members (10 hrs/wk each) with real skill-survey data pulled from the Bookkeeper Skills Google Sheet; also fixed a pre-existing bug where a hardcoded `skillData` filter on the Team page silently hid any member not in that static list.
+- Fixed the broken `/fc-check` page ("Unexpected token '<'" crash) — root cause was the NextAuth `authorized` callback returning an HTML redirect instead of JSON on unauthenticated API calls; now returns proper 401 JSON. Added a `CRON_SECRET` bearer-token bypass for server-to-server calls.
+- Diagnosed and fixed the Financial Cents integration end-to-end: the API key in Railway had expired (6-month FC token lifetime); walked Jonathan through generating + saving + deploying a fresh token, verified live with a real 200 response, and re-enabled the paused `nightly-fc-vs-sheet-check` scheduled task (runs 6:07am daily).
+- Built a `client_fc_aliases` DB table + migration so clients with slightly different names in Financial Cents vs. the Google Sheet (typos/punctuation) match correctly in the nightly check, without renaming the client (which would just get overwritten by the sheet sync). Seeded 5 known aliases (CrossTown Psychology, Humanist Assocation of Canada, MedTach Inc., Investagain - Duram/Ravine); nightly check now shows 0 sheet-only mismatches.
+- Rotated the exposed Google service-account key (`capacity-planner-sheets@bos-capacity-plan.iam.gserviceaccount.com`) that got accidentally printed to chat earlier in the session — new key generated, deployed, old key deleted from Google Cloud Console, verified the app still authenticates fine.
+- Accidentally created a stray Railway domain while investigating; Jonathan deleted the whole duplicate "BOS Capacity Plan" project it was attached to (confirmed correct — it was empty, no DB, not the real production project) rather than just the domain.
+- **Pending / no action needed right now:** everything from this session's task list is resolved. Nothing outstanding except normal future maintenance (e.g. FC token will expire again in ~6 months, around Feb 2027 — worth a reminder then).
