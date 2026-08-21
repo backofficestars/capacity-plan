@@ -13,6 +13,7 @@ import type { Client, TeamMember } from "@/lib/placeholder-data";
 export async function loadClients(): Promise<Client[]> {
   const dbClients = await db.query.clients.findMany({
     orderBy: (c, { asc }) => [asc(c.clientName)],
+    with: { fcAliases: true },
   });
 
   const dbAssignments = await db.query.assignments.findMany({
@@ -28,7 +29,8 @@ export async function loadClients(): Promise<Client[]> {
 
   return dbClients.map((c) => {
     const clientAssignments = dbAssignments.filter((a) => a.clientId === c.id);
-    return mapDbClientToUi(c, clientAssignments, uuidToFcId);
+    const fcAliases = c.fcAliases.map((a) => a.fcName);
+    return mapDbClientToUi(c, clientAssignments, uuidToFcId, fcAliases);
   });
 }
 

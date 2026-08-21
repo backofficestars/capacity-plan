@@ -61,10 +61,12 @@ export type Client = {
   catchUpHrs: number;
   notes: string | null;
   assignments: ClientAssignment[];
+  /** Alternate names this client goes by in Financial Cents (see clientFcAliases) */
+  fcAliases: string[];
 };
 
 /** Build assignments array from flat client fields */
-export function buildAssignmentsFromFlat(c: Omit<Client, "assignments">): ClientAssignment[] {
+export function buildAssignmentsFromFlat(c: Omit<Client, "assignments" | "fcAliases">): ClientAssignment[] {
   const a: ClientAssignment[] = [];
   if (c.leadBookkeeper && c.primaryHrs > 0) a.push({ roleId: "lead", memberId: c.leadBookkeeper, hours: c.primaryHrs });
   if (c.secondBookkeeper && c.secondHrs > 0) a.push({ roleId: "supporting", memberId: c.secondBookkeeper, hours: c.secondHrs });
@@ -193,7 +195,7 @@ export const teamMembers: TeamMember[] = [
 export const assignableMembers = teamMembers.filter((m) => m.assignable);
 
 // Raw data without assignments — assignments populated below
-const rawClients: Omit<Client, "assignments">[] = [
+const rawClients: Omit<Client, "assignments" | "fcAliases">[] = [
   { id: "c1", name: "351 East Orvis", priority: "B", status: "A", leadBookkeeper: "kim", secondBookkeeper: "kayla", oversight: "sunny", totalMonthlyHrs: 1.7, primaryHrs: 1.3, secondHrs: 0, oversightHrs: 0.2, complexity: "Low", software: "QBO", dextHubdoc: "Dext", payrollSoftware: "Wagepoint", payrollBookkeeper: "kayla", payrollHrs: 0.15, yearEnd: "December 31", catchUpHrs: 0, notes: null },
   { id: "c2", name: "Aftermetoo", priority: "A", status: "A", leadBookkeeper: "kayla", secondBookkeeper: "ellen", oversight: "sunny", totalMonthlyHrs: 9.7, primaryHrs: 9.05, secondHrs: 0, oversightHrs: 0.5, complexity: "Medium", software: "QBO", dextHubdoc: "Hubdoc", payrollSoftware: null, payrollBookkeeper: null, payrollHrs: 0, yearEnd: "March 31", catchUpHrs: 0, notes: null },
   { id: "c3", name: "AlphaPlus", priority: "A", status: "A", leadBookkeeper: "kayla", secondBookkeeper: "ellen", oversight: "sunny", totalMonthlyHrs: 10, primaryHrs: 5.35, secondHrs: 2, oversightHrs: 0.5, complexity: "Medium", software: "Xero", dextHubdoc: "Dext", payrollSoftware: null, payrollBookkeeper: null, payrollHrs: 2, yearEnd: "March 31", catchUpHrs: 0, notes: null },
@@ -276,6 +278,7 @@ const rawClients: Omit<Client, "assignments">[] = [
 export const clients: Client[] = rawClients.map((c) => ({
   ...c,
   assignments: buildAssignmentsFromFlat(c),
+  fcAliases: [],
 }));
 
 // Helper: get all active clients (Active or Not-active, excluding Prospects)

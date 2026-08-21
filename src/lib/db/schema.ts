@@ -239,6 +239,24 @@ export const clients = pgTable("clients", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+// Alternate names a client goes by in Financial Cents, so the FC check can
+// match them even when the roster (synced from the Google Sheet) uses a
+// different name.
+export const clientFcAliases = pgTable(
+  "client_fc_aliases",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    fcName: text("fc_name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("client_fc_alias_unique").on(table.clientId, table.fcName),
+  ]
+);
+
 // ─── Assignments ─────────────────────────────────────────────────────────────
 
 export const assignments = pgTable(
@@ -455,6 +473,14 @@ export const teamMemberSkillsRelations = relations(
 export const clientsRelations = relations(clients, ({ many }) => ({
   assignments: many(assignments),
   projects: many(projects),
+  fcAliases: many(clientFcAliases),
+}));
+
+export const clientFcAliasesRelations = relations(clientFcAliases, ({ one }) => ({
+  client: one(clients, {
+    fields: [clientFcAliases.clientId],
+    references: [clients.id],
+  }),
 }));
 
 export const assignmentsRelations = relations(assignments, ({ one }) => ({

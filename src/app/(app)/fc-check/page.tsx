@@ -77,26 +77,37 @@ export default function FcCheckPage() {
       return { fcOnly: [] as FcClient[], sheetOnly: [] as typeof clients, matched: [] as typeof clients };
     }
 
-    const sheetMap = new Map(
-      clients.map((c) => [normalize(c.name), c])
-    );
+    // Map every normalized name a client is known by — its own name plus any
+    // Financial Cents aliases — back to that client, so a naming difference
+    // between the Sheet and FC doesn't show up as a false mismatch.
+    const sheetMap = new Map<string, (typeof clients)[number]>();
+    for (const c of clients) {
+      sheetMap.set(normalize(c.name), c);
+      for (const alias of c.fcAliases) {
+        sheetMap.set(normalize(alias), c);
+      }
+    }
     const fcMap = new Map(
       fcClients.map((fc) => [normalize(fc.name), fc])
     );
 
-    // Clients in FC but not in the Sheet
+    // Clients in FC but not in the Sheet (checking aliases too)
     const fcOnly = fcClients.filter(
       (fc) => !sheetMap.has(normalize(fc.name))
     );
 
-    // Clients in the Sheet but not in FC
+    // Clients in the Sheet but not in FC (checking aliases too)
     const sheetOnly = clients.filter(
-      (c) => !fcMap.has(normalize(c.name))
+      (c) =>
+        !fcMap.has(normalize(c.name)) &&
+        !c.fcAliases.some((alias) => fcMap.has(normalize(alias)))
     );
 
-    // Clients found in both
-    const matched = clients.filter((c) =>
-      fcMap.has(normalize(c.name))
+    // Clients found in both (checking aliases too)
+    const matched = clients.filter(
+      (c) =>
+        fcMap.has(normalize(c.name)) ||
+        c.fcAliases.some((alias) => fcMap.has(normalize(alias)))
     );
 
     return { fcOnly, sheetOnly, matched };

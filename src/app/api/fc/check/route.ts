@@ -17,18 +17,30 @@ export async function GET() {
 
     const dbClients = await db.query.clients.findMany({
       where: (c, { eq }) => eq(c.status, "active"),
+      with: { fcAliases: true },
     });
 
-    const sheetNames = new Map(
-      dbClients.map((c) => [normalizeClientName(c.clientName), c.clientName])
-    );
+    // Map every normalized name a client is known by — its own name plus any
+    // Financial Cents aliases — back to that client's name, so a naming
+    // difference between the Sheet and FC doesn't show up as a false mismatch.
+    const sheetNames = new Map<string, string>();
+    for (const c of dbClients) {
+      sheetNames.set(normalizeClientName(c.clientName), c.clientName);
+      for (const alias of c.fcAliases) {
+        sheetNames.set(normalizeClientName(alias.fcName), c.clientName);
+      }
+    }
     const fcMap = new Map(fcClients.map((c) => [normalizeClientName(c.name), c.name]));
 
     const fcOnly = fcClients
       .filter((c) => !sheetNames.has(normalizeClientName(c.name)))
       .map((c) => c.name);
     const sheetOnly = dbClients
-      .filter((c) => !fcMap.has(normalizeClientName(c.clientName)))
+      .filter(
+        (c) =>
+          !fcMap.has(normalizeClientName(c.clientName)) &&
+          !c.fcAliases.some((alias) => fcMap.has(normalizeClientName(alias.fcName)))
+      )
       .map((c) => c.clientName);
 
     return NextResponse.json({

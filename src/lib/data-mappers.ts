@@ -47,7 +47,8 @@ function mapComplexityToUi(s: string | null): string | null {
 export function mapDbClientToUi(
   c: DbClient,
   dbAssignments: DbAssignment[],
-  uuidToFcId: Map<string, string>
+  uuidToFcId: Map<string, string>,
+  fcAliases: string[] = []
 ): UiClient {
   // Build UI assignments
   const assignments: ClientAssignment[] = dbAssignments.map((a) => ({
@@ -86,6 +87,7 @@ export function mapDbClientToUi(
     catchUpHrs: Number(c.catchUpHrs ?? 0),
     notes: c.notes,
     assignments,
+    fcAliases,
   };
 }
 
